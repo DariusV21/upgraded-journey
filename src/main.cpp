@@ -61,11 +61,6 @@ void drawCircles(float lineWidth){
   tft.drawCircle(tft.width()/2, tft.height()/2, 10, ST7735_GREEN);
   delay(1000);
 
-  // for (float i = 0; i < lineWidth; i+= 0.5) {
-  //   tft.drawCircle(32, 48, 20-i, ST7735_RED);
-  //   tft.drawCircle(96, 48, 20-i, ST7735_RED);
-  // }
-
 
   // tft.drawCircle(32, 48, 20, ST7735_RED);
   tft.fillCircle(32, 48, 20+(lineWidth/2), ST7735_RED);
