@@ -174,7 +174,8 @@ bool readNextChar = false;
 float oldValue = 0;
 float newValue = 0;
 int graphData[128];
-
+int graphX = 0;
+char color;
 
 void writeBTC(){
   // tft.fillScreen(ST7735_Black);
@@ -185,13 +186,16 @@ void writeBTC(){
 
 
   if (newValue > oldValue) {
-    tft.fillRect(0, 0, tft.width(), 40, ST7735_Green);
+    // tft.fillRect(0, 0, tft.width(), 40, ST7735_Green);
+    color = ST7735_Green;
     tft.setTextColor(ST7735_Green);
   } else if (newValue < oldValue) {
-    tft.fillRect(0, 0, tft.width(), 40, ST7735_Red);
+    // tft.fillRect(0, 0, tft.width(), 40, ST7735_Red);
+    color = ST7735_Red;
     tft.setTextColor(ST7735_Red);
   }
-
+  // tft.setTextColor(color);
+  tft.fillRect(0, 0, tft.width(), 40, ST7735_Black);
   tft.drawLine(0, 40, 128, 40, ST7735_Cyan);
   // tft.setTextColor(ST7735_White);
   tft.setCursor(15, 20);
@@ -199,14 +203,20 @@ void writeBTC(){
   tft.print(newValue);
 
   oldValue = newValue;
+
 }
 
 
 void drawGraph() {
     // 0, 44 -> 128,124
-    // int mapx = map(44, 124, 0, )
+     int mapY = map(newValue, 13000, 15000, 44, 124);
 
-    // tft.drawPixel(posX, posY, ST7735_White);
+    tft.drawPixel(graphX, mapY, ST7735_White);
+    graphX++;
+
+    if (graphX >= 128) {
+      graphX = 0;
+    }
 
 
 
@@ -248,12 +258,14 @@ void loop() {
         readNextChar = false;
         z = 0;
         writeBTC();
+        drawGraph();
         Serial.print(msg);
     } else if (readNextChar) {
         msg[z] = c;
         z++;
         if (z >= 10) z = 0;
     }
+
   }
 
 
