@@ -2,6 +2,7 @@
 #include <XTronical_ST7735.h> // Hardware-specific library
 #include <SPI.h>
 #include <Keyboard.h>
+#include <StackArray.h>
 
 // set up pins we are going to use to talk to the screen
 #define TFT_SCLK 13         // SPI clock (SCK)
@@ -170,16 +171,57 @@ char msg[10];
 int z = 0;
 bool readNextChar = false;
 
+float oldValue = 0;
+float newValue = 0;
+int graphData[128];
 
 
 void writeBTC(){
-  tft.fillScreen(ST7735_Black);
-  tft.setTextColor(ST7735_White);
-  tft.setCursor(10, 25);
-  tft.setTextSize(2);
+  // tft.fillScreen(ST7735_Black);
+  // tft.fillRect(0, 0, tft.width(), 40, ST7735_Black);
+  // tft.drawRect(tft.width()/2 -x/2, tft.height()/2 -x/2 , x, x, color2);
 
-  tft.print(msg);
+  newValue = atof(msg); // array to
+
+
+  if (newValue > oldValue) {
+    tft.fillRect(0, 0, tft.width(), 40, ST7735_Green);
+    tft.setTextColor(ST7735_Green);
+  } else if (newValue < oldValue) {
+    tft.fillRect(0, 0, tft.width(), 40, ST7735_Red);
+    tft.setTextColor(ST7735_Red);
+  }
+
+  tft.drawLine(0, 40, 128, 40, ST7735_Cyan);
+  // tft.setTextColor(ST7735_White);
+  tft.setCursor(15, 20);
+  tft.setTextSize(2);
+  tft.print(newValue);
+
+  oldValue = newValue;
 }
+
+
+void drawGraph() {
+    // 0, 44 -> 128,124
+    // int mapx = map(44, 124, 0, )
+
+    // tft.drawPixel(posX, posY, ST7735_White);
+
+
+
+}
+
+// bool compare(char message){
+//   // for (size_t i = 0; i < message.length; i++) {
+//     float newFloat = atof(message);
+//   // }
+//
+//
+//
+// }
+
+
 
 
 
@@ -200,7 +242,6 @@ void loop() {
     int i = (int)c;
 
 
-
     if (i == 36) { // $
       readNextChar = true;
     } else if (i == 37) { // %
@@ -213,7 +254,7 @@ void loop() {
         z++;
         if (z >= 10) z = 0;
     }
-
+  }
 
 
 
@@ -251,7 +292,7 @@ void loop() {
 
 
 
-  }
+
   // textOnScreen("Platformio!");
   // drawCircle(5, ConvertRGB(0, 153, 255));
   // drawRoundRectangle(10, 0, 100, 50, 10, 4, ConvertRGB(0, 153, 255));
