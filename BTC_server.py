@@ -1,6 +1,7 @@
 import serial
 from forex_python.bitcoin import BtcConverter
 import time
+import random
 
 ser = serial.Serial()
 ser.baudrate = 9600
@@ -10,22 +11,38 @@ ser.open()
 b = BtcConverter()
 
 
+
+demo = True
+
 time.sleep(5)
+
+print("Demo is: ", demo)
 
 while True:
     
 
     ser.write(b'$')
     
-    l = b.get_latest_price('USD')
+    bitcoinValue = b.get_latest_price('USD')
 
-    s = str(round(l, 3))
+    rnd = random.randint(13500, 14500);
+
+
+    if not demo:
+       stringToSend = str(round(bitcoinValue, 3))
+    else:
+       stringToSend = str(round(rnd, 3))
     
-    ser.write(s.encode())
+    
+    ser.write(stringToSend.encode())
 
     ser.write(b'%')
 
 
 
-
-    time.sleep(5)
+if not demo:
+    time.sleep(30)
+else:
+    time.sleep(3)
+    
+    
