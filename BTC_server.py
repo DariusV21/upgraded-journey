@@ -1,48 +1,48 @@
 import serial
-from forex_python.bitcoin import BtcConverter
 import time
 import random
+import gdax
 
 ser = serial.Serial()
 ser.baudrate = 9600
 ser.port = 'COM4'
+
 ser.open()
 
-b = BtcConverter()
+
+
+curPrice = 0
+
+class myWebsocketClient(gdax.WebsocketClient):
+    def on_open(self):
+        self.url = "wss://ws-feed.gdax.com/"
+        self.products = ["BTC-USD"]
+        print("WebSocket is oppened")
+    def on_message(self, msg):
+        if 'price' in msg and 'type' in msg:
+            #print ("Message type:", msg["type"],
+                   #\t@ {:.3f}".format(float(msg["price"])))'''
+            curPrice = "{:.2f}".format(float(msg["price"]))
+            sendToLCD(curPrice)
+        time.sleep(5)
+    def on_close(self):
+        print("-- Goodbye! --")
+
+wsClient = myWebsocketClient()
+wsClient.start()
+print(wsClient.url, wsClient.products)
+wsClient.close()
 
 
 
-demo = False
 
-time.sleep(5)
-
-print("Demo is: ", demo)
-
-while True:
-    
-
+def sendToLCD( str ):
+   #"This prints a passed string into this function"
+    print("string: ", str)
     ser.write(b'$')
-    
-    bitcoinValue = b.get_latest_price('USD')
-
-    rnd = random.randint(13500, 14500);
-
-
-    if not demo:
-       stringToSend = str(round(bitcoinValue, 3))
-    else:
-       stringToSend = str(round(rnd, 3))
-    
-    
-    ser.write(stringToSend.encode())
-
+    ser.write(str.encode())
     ser.write(b'%')
+    return
 
 
 
-if not demo:
-    time.sleep(30)
-else:
-    time.sleep(3)
-    
-    

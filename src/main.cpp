@@ -2,7 +2,6 @@
 #include <XTronical_ST7735.h> // Hardware-specific library
 #include <SPI.h>
 #include <Keyboard.h>
-#include <PacketSerial.h>
 
 // set up pins we are going to use to talk to the screen
 #define TFT_SCLK 13         // SPI clock (SCK)
@@ -46,11 +45,8 @@ VCC -   5V
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
 
-
-
-
-word ConvertRGB(byte R, byte G, byte B)
-{
+// Function to convert RGB color to this... sh!t.
+word ConvertRGB(byte R, byte G, byte B) {
   return ( ((R & 0xF8) << 8) | ((G & 0xFC) << 3) | (B >> 3) );
 }
 
@@ -68,19 +64,42 @@ float newValue = 0;
 int iteration = 0;
 bool isGreen = false;
 
+float compoundValue = newValue;
+
+
+void drawCompoundValue() {
+  tft.fillRect(65, 100, 128, 128, ST7735_Black);
+  tft.setCursor(65, 100);
+  tft.setTextSize(1);
+  compoundValue = newValue - oldValue;
+
+  if (compoundValue >= 0) {
+    tft.print("+");
+  }
+  tft.print(compoundValue);
+
+
+
+
+}
+
+
 
 
 void writeBTC(){
   newValue = atof(msg); // array to float
+  // tft.print(msg);
 
   if (newValue != oldValue) {
 
   if (newValue > oldValue) {
     tft.setTextColor(ST7735_Green);
     isGreen = true;
+    drawCompoundValue();
   } else if (newValue < oldValue) {
     tft.setTextColor(ST7735_Red);
     isGreen = false;
+    drawCompoundValue();
   }
 
   tft.fillRect(0, 0, tft.width(), 40, ST7735_Black);
@@ -91,6 +110,7 @@ void writeBTC(){
   tft.print(newValue);
 
 }
+  // tft.print("SAME");
   oldValue = newValue;
 
 }
@@ -109,6 +129,7 @@ iteration ++;
 
 if (iteration >= 128) {
   iteration = 0;
+  compoundValue = 0;
   tft.fillRect(0, 41, tft.width(), tft.height(), ST7735_Black);
 }
 
@@ -148,6 +169,12 @@ void loop() {
     int i = (int)c;
 
 
+    if (readNextChar) {
+        msg[z] = c;
+        z++;
+        if (z >= 10) z = 0;
+    }
+
     if (i == 36) { // $
       readNextChar = true;
     } else if (i == 37) { // %
@@ -156,11 +183,8 @@ void loop() {
         writeBTC();
         drawGraph();
         // Serial.print(msg);
-    } else if (readNextChar) {
-        msg[z] = c;
-        z++;
-        if (z >= 10) z = 0;
     }
+
 
   }
 
