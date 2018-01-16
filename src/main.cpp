@@ -2,6 +2,7 @@
 #include <XTronical_ST7735.h> // Hardware-specific library
 #include <SPI.h>
 #include <Keyboard.h>
+#include <PacketSerial.h>
 
 // set up pins we are going to use to talk to the screen
 #define TFT_SCLK 13         // SPI clock (SCK)
@@ -111,6 +112,8 @@ if (iteration >= 128) {
   tft.fillRect(0, 41, tft.width(), tft.height(), ST7735_Black);
 }
 
+delay(1000);
+
 
 
 
@@ -141,6 +144,7 @@ void loop() {
 
   while (Serial.available() > 0) {
     char c = Serial.read();
+    Serial.print(c);
     int i = (int)c;
 
 
@@ -151,7 +155,7 @@ void loop() {
         z = 0;
         writeBTC();
         drawGraph();
-        Serial.print(msg);
+        // Serial.print(msg);
     } else if (readNextChar) {
         msg[z] = c;
         z++;

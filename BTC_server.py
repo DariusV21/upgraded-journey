@@ -12,7 +12,7 @@ b = BtcConverter()
 
 
 
-demo = True
+demo = False
 
 time.sleep(5)
 
