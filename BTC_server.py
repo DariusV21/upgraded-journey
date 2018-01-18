@@ -12,6 +12,8 @@ ser.open()
 
 
 curPrice = 0
+total = 0.0
+iteration = 0
 
 class myWebsocketClient(gdax.WebsocketClient):
     def on_open(self):
@@ -22,9 +24,10 @@ class myWebsocketClient(gdax.WebsocketClient):
         if 'price' in msg and 'type' in msg:
             #print ("Message type:", msg["type"],
                    #\t@ {:.3f}".format(float(msg["price"])))'''
-            curPrice = "{:.2f}".format(float(msg["price"]))
-            sendToLCD(curPrice)
-        time.sleep(1)
+            countAVG(float(msg["price"]))
+            #curPrice = "{:.2f}".format(float(msg["price"]))
+            #sendToLCD(curPrice)
+        #time.sleep(1)
     def on_close(self):
         print("-- Goodbye! --")
 
@@ -36,14 +39,29 @@ print(wsClient.url, wsClient.products)
 print("It works and i don't know why...")
 
 
+def countAVG( price ):
+    global total, iteration
+    
+    #print("Price is: ")
+    #print(price)
+    iteration += 1
+    total = total + price
+    
+    if iteration == 99:
+        total = total/100
+        sendToLCD("{:.2f}".format(total))
+        #print("###########Total is: ", total)
+        total = 0
+        iteration = 0
+
 
 def sendToLCD( str ):
-   #"This prints a passed string into this function"
+    #"This prints a passed string into this function"
     #print("string: ", str)
     ser.write(b'$')
     ser.write(str.encode())
     ser.write(b'%')
-    time.sleep(1)
+    #time.sleep(1)
     return
 
 
