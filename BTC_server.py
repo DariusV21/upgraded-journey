@@ -24,24 +24,26 @@ class myWebsocketClient(gdax.WebsocketClient):
                    #\t@ {:.3f}".format(float(msg["price"])))'''
             curPrice = "{:.2f}".format(float(msg["price"]))
             sendToLCD(curPrice)
-        time.sleep(5)
+        time.sleep(1)
     def on_close(self):
         print("-- Goodbye! --")
 
 wsClient = myWebsocketClient()
 wsClient.start()
 print(wsClient.url, wsClient.products)
-wsClient.close()
+#wsClient.close()
 
+print("It works and i don't know why...")
 
 
 
 def sendToLCD( str ):
    #"This prints a passed string into this function"
-    print("string: ", str)
+    #print("string: ", str)
     ser.write(b'$')
     ser.write(str.encode())
     ser.write(b'%')
+    time.sleep(1)
     return
 
 
