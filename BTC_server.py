@@ -2,67 +2,58 @@ import serial
 import time
 import random
 import gdax
+import os
+from time import gmtime, strftime
+
+os.system('cls')
 
 ser = serial.Serial()
 ser.baudrate = 9600
 ser.port = 'COM4'
 
 ser.open()
+public_client = gdax.PublicClient()
+
+os.system('cls')
+print("Serial connection opened @", ser.port, ser.baudrate)
+print(strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+
+# Wait for arduino to restart and initialise LCD.
+time.sleep(5)
 
 
 
-curPrice = 0
-total = 0.0
-iteration = 0
 
-class myWebsocketClient(gdax.WebsocketClient):
-    def on_open(self):
-        self.url = "wss://ws-feed.gdax.com/"
-        self.products = ["BTC-USD"]
-        print("WebSocket is oppened")
-    def on_message(self, msg):
-        if 'price' in msg and 'type' in msg:
-            #print ("Message type:", msg["type"],
-                   #\t@ {:.3f}".format(float(msg["price"])))'''
-            countAVG(float(msg["price"]))
-            #curPrice = "{:.2f}".format(float(msg["price"]))
-            #sendToLCD(curPrice)
-        #time.sleep(1)
-    def on_close(self):
-        print("-- Goodbye! --")
-
-wsClient = myWebsocketClient()
-wsClient.start()
-print(wsClient.url, wsClient.products)
-#wsClient.close()
-
-print("It works and i don't know why...")
-
-
-def countAVG( price ):
-    global total, iteration
-    
-    #print("Price is: ")
-    #print(price)
-    iteration += 1
-    total = total + price
-    
-    if iteration == 99:
-        total = total/100
-        sendToLCD("{:.2f}".format(total))
-        #print("###########Total is: ", total)
-        total = 0
-        iteration = 0
-
-
-def sendToLCD( str ):
-    #"This prints a passed string into this function"
-    #print("string: ", str)
+def sendToLCD( stringToSend ):
+    #This prints a passed string into this function
+    #print("stringToSend: ", str)
     ser.write(b'$')
-    ser.write(str.encode())
+    ser.write(stringToSend.encode())
     ser.write(b'%')
-    #time.sleep(1)
     return
+
+
+def sendPercentData ( data ):
+    ser.write(b'&')
+    ser.write(data.encode())
+    ser.write(b'*')
+    return
+
+while True:
+
+    
+    data = public_client.get_product_24hr_stats('BTC-USD')
+    last = float(data["last"])
+    btcopen = float(data["open"])
+    #print("data: ", data)
+    perc = -(100-(last/float(data["open"]))*100)
+    print("BTC@ ", last, " USD, ", "{:.2f}".format(perc), "%")
+    sendToLCD("{:.2f}".format(last))
+    sendPercentData("{:.2f}".format(perc))
+    time.sleep(30)
+
+
+
 
 
 

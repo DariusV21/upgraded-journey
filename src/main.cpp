@@ -55,32 +55,44 @@ word ConvertRGB(byte R, byte G, byte B) {
 
 
 char msg[10];
+char msgP[10];
 int z = 0;
+int p = 0;
 bool readNextChar = false;
+bool readPercChar = false;
 
-float oldValue = 0;
 float newValue = 0;
 
-int iteration = 0;
-bool isGreen = false;
-
-float compoundValue = newValue;
+float perc = 0.0;
+bool isPositive = false;
 
 
-void drawCompoundValue() {
-  tft.fillRect(65, 100, 128, 128, ST7735_Black);
-  tft.setCursor(65, 100);
-  tft.setTextSize(1);
-  compoundValue = newValue - oldValue;
 
-  if (compoundValue >= 0) {
-    tft.print("+");
+void drawTriangle() {
+  tft.fillRect(0, 41, 128, 128, ST7735_Black);
+  perc = atof(msgP);
+  if (perc > 0) {
+    isPositive = true;
+  } else {
+    isPositive = false;
   }
-  tft.print(compoundValue);
 
-
-
-
+  if (isPositive){
+    tft.fillTriangle(64, 52, 49, 82, 79, 82, ST7735_GREEN);
+    tft.setTextSize(2);
+    tft.setCursor(20, 100);
+    tft.setTextColor(ST7735_GREEN);
+    tft.print("+");
+    tft.print(perc);
+    tft.print(" %");
+  } else {
+    tft.fillTriangle(64, 82, 49, 52, 79, 52, ST7735_RED);
+    tft.setTextSize(2);
+    tft.setCursor(20, 100);
+    tft.setTextColor(ST7735_RED);
+    tft.print(perc);
+    tft.print(" %");
+  }
 }
 
 
@@ -88,59 +100,21 @@ void drawCompoundValue() {
 
 void writeBTC(){
   newValue = atof(msg); // array to float
-  // tft.print(msg);
 
-  if (newValue != oldValue) {
-
-  if (newValue > oldValue) {
-    tft.setTextColor(ST7735_Green);
-    isGreen = true;
-    drawCompoundValue();
-  } else if (newValue < oldValue) {
-    tft.setTextColor(ST7735_Red);
-    isGreen = false;
-    drawCompoundValue();
+  if (isPositive) {
+    tft.setTextColor(ST7735_GREEN);
+  } else {
+    tft.setTextColor(ST7735_RED);
   }
 
   tft.fillRect(0, 0, tft.width(), 40, ST7735_Black);
-  tft.drawLine(0, 40, 128, 40, ST7735_Cyan);
+  // tft.drawLine(0, 40, 128, 40, ST7735_Cyan);
 
-  tft.setCursor(15, 20);
+  tft.setCursor(15, 15);
   tft.setTextSize(2);
   tft.print(newValue);
 
-}
-  // tft.print("SAME");
-  oldValue = newValue;
-
-}
-
-
-void drawGraph() {
-
-if (!isGreen) {
-  tft.drawLine(iteration, 50, iteration, 70, ST7735_Red);
-} else {
-  tft.drawLine(iteration, 50, iteration, 70, ST7735_Green);
-}
-
-iteration ++;
-
-
-if (iteration >= 128) {
-  iteration = 0;
-  compoundValue = 0;
-  tft.fillRect(0, 41, tft.width(), tft.height(), ST7735_Black);
-}
-
-delay(1000);
-
-
-
-
-
-
-} // drawGraphEND
+} // writeBTC END
 
 
 
@@ -175,18 +149,28 @@ void loop() {
         if (z >= 10) z = 0;
     }
 
+    if (readPercChar) {
+        msgP[p] = c;
+        p++;
+        if (p >= 10) p = 0;
+    }
+
     if (i == 36) { // $
       readNextChar = true;
     } else if (i == 37) { // %
         readNextChar = false;
         z = 0;
         writeBTC();
-        drawGraph();
-        // Serial.print(msg);
+    }
+
+    if (i == 38) { // &
+      readPercChar = true;
+    } else if (i == 42) { // *
+        readPercChar = false;
+        p = 0;
+        drawTriangle();
     }
 
 
-  }
-
-
+  } // Serial available END
 } // LOOP END
