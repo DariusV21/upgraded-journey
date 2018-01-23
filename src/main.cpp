@@ -56,20 +56,25 @@ word ConvertRGB(byte R, byte G, byte B) {
 
 char msg[10];
 char msgP[10];
+char msgT[5];
 int z = 0;
 int p = 0;
+int t = 0;
 bool readNextChar = false;
 bool readPercChar = false;
+bool readTimeChar = false;
 
 float newValue = 0;
+float oldValue = 0;
 
 float perc = 0.0;
 bool isPositive = false;
+int snaketime = 0;
 
 
 
 void drawTriangle() {
-  tft.fillRect(0, 41, 128, 128, ST7735_Black);
+  //tft.fillRect(0, 41, 128, 128, ST7735_Black);
   perc = atof(msgP);
   if (perc > 0) {
     isPositive = true;
@@ -96,10 +101,47 @@ void drawTriangle() {
 }
 
 
+void flashOnChange(bool green) {
+  if (green) {
+    for (size_t i = 250; i > 0; i-=25) {
+      tft.fillScreen(ConvertRGB(0, i, 0));
+      //delay(1);
+    }
+  } else {
+    for (size_t i = 250; i > 0; i-=25) {
+      tft.fillScreen(ConvertRGB(i, 0, 0));
+      //delay(1);
+    }
+  }
+
+
+}
+
+void waitingSnake() {
+  snaketime = atoi(msgT); // array to float
+
+  // tft.fillRect(0, 40, 30, 60, ST7735_Black);
+  // tft.setCursor(0, 40);
+  // tft.setTextSize(1);
+  // tft.print(snaketime);
+
+  tft.drawLine(0, 127, snaketime*4+4, 127, ST7735_LightGrey);
+  if (snaketime >= 30) {
+    snaketime = 0;
+  }
+}
+
 
 
 void writeBTC(){
   newValue = atof(msg); // array to float
+
+if (newValue != oldValue) {
+  if (newValue > oldValue) {
+    flashOnChange(true);
+  } else {
+    flashOnChange(false);
+  }
 
   if (isPositive) {
     tft.setTextColor(ST7735_GREEN);
@@ -107,14 +149,20 @@ void writeBTC(){
     tft.setTextColor(ST7735_RED);
   }
 
-  tft.fillRect(0, 0, tft.width(), 40, ST7735_Black);
+  //tft.fillRect(0, 0, tft.width(), 40, ST7735_Black);
   // tft.drawLine(0, 40, 128, 40, ST7735_Cyan);
 
   tft.setCursor(15, 15);
   tft.setTextSize(2);
   tft.print(newValue);
+}
+
+  tft.fillRect(0, 126, tft.width(), tft.height(), ST7735_Black);
+  oldValue = newValue;
 
 } // writeBTC END
+
+
 
 
 
@@ -137,6 +185,11 @@ void setup(void) {
 
 void loop() {
 
+  // tft.setCursor(15, 15);
+  // tft.setTextColor(ST7735_GREEN);
+  // tft.setTextSize(1);
+  // tft.print("Waiting for server data");
+
   while (Serial.available() > 0) {
     char c = Serial.read();
     Serial.print(c);
@@ -155,6 +208,12 @@ void loop() {
         if (p >= 10) p = 0;
     }
 
+    if (readTimeChar) {
+        msgT[t] = c;
+        t++;
+        if (t >= 5) t = 0;
+    }
+
     if (i == 36) { // $
       readNextChar = true;
     } else if (i == 37) { // %
@@ -169,6 +228,14 @@ void loop() {
         readPercChar = false;
         p = 0;
         drawTriangle();
+    }
+
+    if (i == 64) { // @
+      readTimeChar = true;
+    } else if (i == 35) { // #
+        readTimeChar = false;
+        t = 0;
+        waitingSnake();
     }
 
 
