@@ -2,7 +2,9 @@
 Yeah, this is repository i guess...
 
 
-This is repository for my interstellar Arduino + ST7735 TFT LCD + SDCard project.
-So far it gets Bitcoin data, and shows it realtime on screen.
+This is repository for my interstellar Arduino + ST7735 TFT LCD + Python project.
 
-It also has python with a couple libraries to fetch BTC data to the arduino
+So far it gets Bitcoin data from GDAX exchange, and shows it realtime on screen.
+Also shows price alteration in percentage for the last 24 hours.
+
+The Python uses gdax, time, os and serial libraries.
