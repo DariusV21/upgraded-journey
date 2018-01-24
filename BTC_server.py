@@ -9,7 +9,7 @@ from time import gmtime, strftime
 os.system('cls')
 
 ser = serial.Serial()
-ser.baudrate = 9600
+ser.baudrate = 115200
 ser.port = 'COM4'
 
 ser.open()
@@ -62,4 +62,3 @@ while True:
         tm = tm + 1
         sendTimeData("{:.0f}".format(tm))
         time.sleep(1)
-        
