@@ -24,7 +24,7 @@ const char* host = "api.coindesk.com";
 void setup() {
 
   // Serial
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(10);
 
   // Initialize display
@@ -72,6 +72,7 @@ void loop() {
 
   // We now create a URI for the request
   String url = "/v1/bpi/currentprice.json";
+  String historical_URL = "/v1/bpi/historical/close.json?for=yesterday";
 
   if (CONNECTED_TO_PC) Serial.print("Requesting URL: ");
   if (CONNECTED_TO_PC) Serial.println(url);
@@ -89,7 +90,41 @@ void loop() {
     answer += line;
   }
 
+
   client.stop();
+  if (CONNECTED_TO_PC) Serial.println();
+  if (CONNECTED_TO_PC) Serial.println("closing connection");
+
+
+  ////////////// YESTERDAY
+
+  // Connect to API
+  if (CONNECTED_TO_PC) Serial.print("connecting to ");
+  if (CONNECTED_TO_PC) Serial.println(host);
+
+  // Use WiFiClient class to create TCP connections
+  WiFiClient client1;
+  //const int httpPort = 80;
+  if (!client1.connect(host, httpPort)) {
+    if (CONNECTED_TO_PC) Serial.println("connection failed");
+    return;
+  }
+
+
+  // This will send the request to the server ABOUT YESTERDAYS PRICE
+  client1.print(String("GET ") + historical_URL + " HTTP/1.1\r\n" +
+                "Host: " + host + "\r\n" +
+                "Connection: close\r\n\r\n");
+  delay(100);
+
+  // Read all the lines of the reply from server and print them to Serial
+  String yesterday_answer;
+  while (client1.available()) {
+    String yesterday_line = client1.readStringUntil('\r');
+    yesterday_answer += yesterday_line;
+  }
+
+  client1.stop();
   if (CONNECTED_TO_PC) Serial.println();
   if (CONNECTED_TO_PC) Serial.println("closing connection");
 
@@ -98,13 +133,28 @@ void loop() {
   if (CONNECTED_TO_PC) Serial.println("Answer: ");
   if (CONNECTED_TO_PC) Serial.println(answer);
 
+  // Process answer
+  if (CONNECTED_TO_PC) Serial.println();
+  if (CONNECTED_TO_PC) Serial.println("Yesterday answer: ");
+  if (CONNECTED_TO_PC) Serial.println(yesterday_answer);
+
   // Convert to JSON
   String jsonAnswer;
   int jsonIndex;
 
+  String jsonYAnswer;
+  int jsonYIndex;
+
   for (int i = 0; i < answer.length(); i++) {
     if (answer[i] == '{') {
       jsonIndex = i;
+      break;
+    }
+  }
+
+  for (int i = 0; i < yesterday_answer.length(); i++) {
+    if (yesterday_answer[i] == '{') {
+      jsonYIndex = i;
       break;
     }
   }
@@ -116,11 +166,25 @@ void loop() {
   if (CONNECTED_TO_PC) Serial.println(jsonAnswer);
   jsonAnswer.trim();
 
+  // Get YJSON data
+  jsonYAnswer = yesterday_answer.substring(jsonYIndex);
+  if (CONNECTED_TO_PC) Serial.println();
+  if (CONNECTED_TO_PC) Serial.println("JSON yesterday answer: ");
+  if (CONNECTED_TO_PC) Serial.println(jsonYAnswer);
+  jsonYAnswer.trim();
+
   // Get rate as float
   int rateIndex = jsonAnswer.indexOf("rate_float");
   String priceString = jsonAnswer.substring(rateIndex + 12, rateIndex + 18);
   priceString.trim();
   float price = priceString.toFloat();
+
+  // Get rate as float
+  int rateYIndex = jsonYAnswer.indexOf("bpi");
+  String priceYString = jsonYAnswer.substring(rateYIndex + 19, rateYIndex + 26);
+  priceYString.trim();
+  float priceY = priceYString.toFloat();
+
 
   // Print price
   if (CONNECTED_TO_PC) Serial.println();
@@ -129,14 +193,38 @@ void loop() {
   Serial.print(price);
   if (!CONNECTED_TO_PC) Serial.print("%");
 
+  // Print yesterdays price
+  if (CONNECTED_TO_PC) Serial.println();
+  if (CONNECTED_TO_PC) Serial.println("Yesterdays Bitcoin price: ");
+  if (CONNECTED_TO_PC) Serial.print(priceY);
+  float perc = -(100-(price/priceY)*100);
+
+
+  if (CONNECTED_TO_PC) Serial.println("Change in percentage: ");
+  if (CONNECTED_TO_PC) Serial.print(perc);
+
+  
+  if (!CONNECTED_TO_PC) Serial.print("&");
+  Serial.print(perc);
+  if (!CONNECTED_TO_PC) Serial.print("*");
+  if (CONNECTED_TO_PC) Serial.println();
+
   // Display on OLED
   //  display.clear();
   //  display.setFont(ArialMT_Plain_24);
   //  display.drawString(26, 20, priceString);
   //  display.display();
 
+
+  for (int i = 0; i < 30; i++) {
+    if (!CONNECTED_TO_PC) Serial.print("@");
+    Serial.print(30-i);
+    if (!CONNECTED_TO_PC) Serial.print("#");
+    delay(1000);
+  }
+
   // Wait 30 seconds
-  delay(5000);
+  
 }
 
 
