@@ -69,7 +69,7 @@ float oldValue = 0;
 
 float perc = 0.0;
 bool isPositive = false;
-int snaketime = 0;
+int timeLine = 0;
 
 
 
@@ -117,18 +117,16 @@ void flashOnChange(bool green) {
 
 }
 
-void waitingSnake() {
-  snaketime = atoi(msgT); // array to float
+void waitingLine() {
+  timeLine = atoi(msgT); // array to float
 
   // tft.fillRect(0, 40, 30, 60, ST7735_Black);
   // tft.setCursor(0, 40);
   // tft.setTextSize(1);
-  // tft.print(snaketime);
+  // tft.print(timeLine);
 
-  tft.drawLine(0, 127, snaketime*4+4, 127, ST7735_LightGrey);
-  if (snaketime >= 30) {
-    snaketime = 0;
-  }
+  tft.drawLine(0, 127, timeLine*4+4, 127, ST7735_LightGrey);
+
 }
 
 
@@ -173,7 +171,7 @@ if (newValue != oldValue) {
 
 
 void setup(void) {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   tft.init();   // initialize a ST7735S chip,
   tft.setRotation(1);
@@ -211,7 +209,7 @@ void loop() {
     if (readTimeChar) {
         msgT[t] = c;
         t++;
-        if (t >= 5) t = 0;
+        if (t >= 8) t = 0;
     }
 
     if (i == 36) { // $
@@ -228,6 +226,7 @@ void loop() {
         readPercChar = false;
         p = 0;
         drawTriangle();
+        timeLine = 0;
     }
 
     if (i == 64) { // @
@@ -235,7 +234,7 @@ void loop() {
     } else if (i == 35) { // #
         readTimeChar = false;
         t = 0;
-        waitingSnake();
+        waitingLine();
     }
 
 
