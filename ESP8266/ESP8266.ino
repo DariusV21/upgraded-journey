@@ -1,5 +1,5 @@
 // Libraries
-#include <ESP8266WiFi.h>
+//#include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <Wire.h>
 //#include "SSD1306.h"
@@ -256,38 +256,50 @@ void loop() {
 //  }
 
 
+const size_t bufferSize = JSON_OBJECT_SIZE(3);
+DynamicJsonBuffer jsonBuffer(bufferSize);
 
-      String str0 = "String to send";
-      char buf[str0.length()];
+JsonObject& root = jsonBuffer.createObject();
+root["price"] = 93340.93;
+root["yesterday"] = 11200.31;
+root["time"] = 30;
 
+//root.printTo(Serial);
 
-      
-      str0.toCharArray(buf, str0.length());
- //   char p1 = "Package 1";
- //   char p2 = "Package 2";
+myCombinedSerial.send(root, 1);
 
-    float floatie = 13450.49;
-
-    
-    packet00 = packet00 + 1;
-    packet01 = packet01 + 2;
+//
+//      String str0 = "String to send";
+//      char buf[str0.length()];
+//
+//
+//      
+//      str0.toCharArray(buf, str0.length());
+// //   char p1 = "Package 1";
+// //   char p2 = "Package 2";
+//
+//    float floatie = 13450.49;
+//
+//    
+//    packet00 = packet00 + 1;
+//    packet01 = packet01 + 2;
  //   packet10 = packet10 + 5;
 
 
 
 
 
-  myFloat.number = floatie;
+ // myFloat.number = floatie;
 
 
     // Make an array.
-    uint8_t combPacket[5] = { myFloat.bytes[0], myFloat.bytes[1], myFloat.bytes[2], myFloat.bytes[3], 10 };
+//    uint8_t combPacket[5] = { myFloat.bytes[0], myFloat.bytes[1], myFloat.bytes[2], myFloat.bytes[3], 10 };
 //    char combPacket[4] = {buf, packet00, packet01, floatie};
 //    uint8_t pricePacket[3] = { p0, packet00, packet01 };
 //    uint8_t timePacket[1] = { packet10 };
 
     // Send the array.
-    serial_Price.send(combPacket, 1);
+//    serial_Price.send(combPacket, 1);
 //    serial_Price.send(pricePacket, 3);
 //    serial_Time.send(timePacket, 1);
     delay(2000);
