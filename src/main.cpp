@@ -3,6 +3,8 @@
 #include <SPI.h>
 #include <Keyboard.h>
 
+#include <PacketSerial.h>
+
 // set up pins we are going to use to talk to the screen
 #define TFT_SCLK 13         // SPI clock (SCK)
 #define TFT_MOSI 11         // SPI Data
@@ -44,6 +46,9 @@ VCC -   5V
 #define ST7735_Pink            0xF81F
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
+
+PacketSerial serial_Price;
+PacketSerial serial_Time;
 
 // Function to convert RGB color to this... sh!t.
 word ConvertRGB(byte R, byte G, byte B) {
@@ -160,6 +165,66 @@ if (newValue != oldValue) {
 
 } // writeBTC END
 
+// This is our handler callback function.
+// When an encoded packet is received and decoded, it will be delivered here.
+// The `buffer` is a pointer to the decoded byte array. `size` is the number of
+// bytes in the `buffer`.
+
+
+// Man reikia persiusti kas 30sek: CurrentPrice, YesterdayPrice
+// Kas 1sek: TimeLeft
+// BUFFER = []
+
+void onPriceReceived(const uint8_t* buffer, size_t size) {
+      tft.setTextColor(ST7735_GREEN);
+        tft.fillRect(0, 0, tft.width(), 80, ST7735_Black);
+       tft.setCursor(0, 0);
+       tft.setTextSize(1);
+       tft.print(buffer[0]);
+       tft.setCursor(0, 15);
+       tft.setTextSize(1);
+       tft.print(buffer[1]);
+
+} // onPriceReceived function END
+
+   void onTimeReceived(const uint8_t* buffer, size_t size) {
+
+     // if (sender == &serial_Price) {
+     //      // Do something with the packet from myPacketSerial.
+
+      //     tft.setCursor(0, 0);
+      //     tft.setTextSize(1);
+      //     tft.print(buffer[0]);
+      //     tft.setCursor(0, 15);
+      //     tft.setTextSize(1);
+      //     tft.print(buffer[1]);
+      // }
+      // else if (sender == &serial_Time) {
+          // Do something with the packet from myOtherPacketSerial.
+          tft.fillRect(0, 90, tft.width(), tft.height(), ST7735_Black);
+          tft.setTextColor(ST7735_GREEN);
+          tft.setCursor(0, 100);
+          tft.setTextSize(1);
+          tft.print(buffer[0]);
+      // }
+   } // onTimeReceived function END
+
+  // // Make a temporary buffer.
+  // uint8_t tempBuffer[size];
+  //
+  // // Copy the packet into our temporary buffer.
+  // memcpy(tempBuffer, buffer, size);
+  //
+  //
+  // if (tempBuffer[17] == true) {
+  //   digitalWrite(LED_BUILTIN, HIGH);
+  //   delay(1000);
+  // } else if (tempBuffer[17] == false){
+  //   digitalWrite(LED_BUILTIN, LOW);
+  //   delay(1000);
+  // }
+
+
 
 
 
@@ -171,72 +236,89 @@ if (newValue != oldValue) {
 
 
 void setup(void) {
-  Serial.begin(115200);
+
+  serial_Price.begin(9600);
+  serial_Price.setPacketHandler(&onPriceReceived);
+
+  serial_Time.begin(115200);
+  serial_Time.setPacketHandler(&onTimeReceived);
+
+  //Serial.begin(115200);
 
   tft.init();   // initialize a ST7735S chip,
   tft.setRotation(1);
-  tft.fillScreen(ST7735_BLACK);
+  tft.fillScreen(ST7735_GreenYellow);
   // word color = ST7735_White;
   //fillStack();
 
 } // SETUP END
 
 void loop() {
+  //tft.fillScreen(ST7735_BLACK);
+
+
+  serial_Price.update();
+  serial_Time.update();
+
+
+
+  delay(1000);
+
 
   // tft.setCursor(15, 15);
   // tft.setTextColor(ST7735_GREEN);
   // tft.setTextSize(1);
   // tft.print("Waiting for server data");
-
-  while (Serial.available() > 0) {
-    char c = Serial.read();
-    Serial.print(c);
-    int i = (int)c;
-
-
-    if (readNextChar) {
-        msg[z] = c;
-        z++;
-        if (z >= 10) z = 0;
-    }
-
-    if (readPercChar) {
-        msgP[p] = c;
-        p++;
-        if (p >= 10) p = 0;
-    }
-
-    if (readTimeChar) {
-        msgT[t] = c;
-        t++;
-        if (t >= 8) t = 0;
-    }
-
-    if (i == 36) { // $
-      readNextChar = true;
-    } else if (i == 37) { // %
-        readNextChar = false;
-        z = 0;
-        writeBTC();
-    }
-
-    if (i == 38) { // &
-      readPercChar = true;
-    } else if (i == 42) { // *
-        readPercChar = false;
-        p = 0;
-        drawTriangle();
-        timeLine = 0;
-    }
-
-    if (i == 64) { // @
-      readTimeChar = true;
-    } else if (i == 35) { // #
-        readTimeChar = false;
-        t = 0;
-        waitingLine();
-    }
-
-
-  } // Serial available END
+  //
+  // while (Serial.available() > 0) {
+  //   char c = Serial.read();
+  //   Serial.print(c);
+  //   int i = (int)c;
+  //
+  //
+  //   if (readNextChar) {
+  //       msg[z] = c;
+  //       z++;
+  //       if (z >= 10) z = 0;
+  //   }
+  //
+  //   if (readPercChar) {
+  //       msgP[p] = c;
+  //       p++;
+  //       if (p >= 10) p = 0;
+  //   }
+  //
+  //   if (readTimeChar) {
+  //       msgT[t] = c;
+  //       t++;
+  //       if (t >= 8) t = 0;
+  //   }
+  //
+  //   if (i == 36) { // $
+  //     readNextChar = true;
+  //   } else if (i == 37) { // %
+  //       readNextChar = false;
+  //       z = 0;
+  //       writeBTC();
+  //   }
+  //
+  //   if (i == 38) { // &
+  //     readPercChar = true;
+  //   } else if (i == 42) { // *
+  //       readPercChar = false;
+  //       p = 0;
+  //       drawTriangle();
+  //       timeLine = 0;
+  //   }
+  //
+  //   if (i == 64) { // @
+  //     readTimeChar = true;
+  //   } else if (i == 35) { // #
+  //       readTimeChar = false;
+  //       t = 0;
+  //       waitingLine();
+  //   }
+  //
+  //
+  // } // Serial available END
 } // LOOP END
